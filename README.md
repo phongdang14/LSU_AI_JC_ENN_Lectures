@@ -63,7 +63,7 @@ architecture to show the checks failing.
 ## Citation
 
 > P. Dang, *SO(3) Equivariant Neural Networks: A Five-Lecture Journal-Club
-> Series*, LSU AI Journal Club, 2026. https://github.com/<user>/LSU_AI_JC_ENN_Lectures
+> Series*, LSU AI Journal Club, 2026. https://github.com/phongdang14/LSU_AI_JC_ENN_Lectures
 
 ## Credits
 
