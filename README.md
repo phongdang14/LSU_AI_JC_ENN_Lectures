@@ -6,8 +6,9 @@ and Clebsch–Gordan couplings, to a working equivariant network built in NumPy.
 
 No prior group theory is assumed. Basic linear algebra and some Python are enough.
 
-**Materials are published week by week as the course is taught.** Solution notes
-appear one week after their lecture, so the exercises are worth attempting first.
+**Materials are published week by week as the course is taught.** Each lecture's
+notes, notebook and solutions go up after that week's session, once the discussion
+has happened — so the questions are worth working through live rather than alone.
 
 ## Schedule and status
 
@@ -28,7 +29,7 @@ appear one week after their lecture, so the exercises are worth attempting first
 - `lecture_NN_*.ipynb` — the participant notebook. Runs top to bottom from a
   fresh kernel; outputs are stored, so you can read it without running it.
 - `lecture_NN_solutions.pdf` — answers to the numbered questions and reference
-  values for the notebook checks. Added one week after the lecture.
+  values for the notebook checks.
 
 `series-overview.pdf` is the front matter: the arc of the course, how each
 90-minute session is structured, and what you should be able to do at the end.

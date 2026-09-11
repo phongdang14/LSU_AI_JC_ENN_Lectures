@@ -3,12 +3,11 @@
 
 Usage:  python3 tools/publish_week.py N
 
-Copies Lecture N's notes and notebook out of the working tree (../output) into
-lectures/, copies Lecture N-1's solutions (the one-week delay), updates the
-status table in README.md, and stages everything. It stops short of committing
-so you can read the diff first.
+Copies Lecture N's notes, notebook and solutions out of the working tree
+(../output) into lectures/, updates the status table in README.md, and stages
+everything. It stops short of committing so you can read the diff first.
 
-N may be 6, meaning "publish Lecture 5's solutions only" -- the final week.
+Nothing is ever moved or removed from ../output -- this only reads from it.
 """
 import re
 import shutil
@@ -30,19 +29,17 @@ PDFS = SRC / "pdf" / "so3_enn_series"
 NBS = SRC / "notebooks" / "so3_enn_series"
 
 
-def copy(src: Path, dest_dir: Path) -> Path:
-    """Copy one file into dest_dir, creating it, and return the destination."""
+def copy(src: Path, dest_dir: Path) -> None:
+    """Copy one file into dest_dir, creating it if needed."""
     if not src.exists():
         sys.exit(f"missing source file: {src}")
     dest_dir.mkdir(parents=True, exist_ok=True)
-    dest = dest_dir / src.name
-    shutil.copy2(src, dest)
-    print(f"  + {dest.relative_to(REPO)}")
-    return dest
+    shutil.copy2(src, dest_dir / src.name)
+    print(f"  + {(dest_dir / src.name).relative_to(REPO)}")
 
 
 def mark(readme: str, row: int, column: int) -> str:
-    """Set one cell of the status table to a tick. Columns: 0 notes, 1 notebook, 2 solutions."""
+    """Tick one cell of the status table. Columns: 0 notes, 1 notebook, 2 solutions."""
     lines = readme.splitlines(keepends=True)
     for i, line in enumerate(lines):
         if re.match(rf"^\|\s*{row}\s*\|", line):
@@ -60,41 +57,31 @@ def main() -> None:
     if len(sys.argv) != 2 or not sys.argv[1].isdigit():
         sys.exit(__doc__)
     week = int(sys.argv[1])
-    if not 1 <= week <= 6:
-        sys.exit("week must be between 1 and 6")
+    if week not in SLUGS:
+        sys.exit("week must be between 1 and 5")
 
     readme_path = REPO / "README.md"
     readme = readme_path.read_text()
+    folder = REPO / "lectures" / SLUGS[week]
 
-    if week <= 5:
-        print(f"Lecture {week}:")
-        folder = REPO / "lectures" / SLUGS[week]
-        copy(PDFS / f"lecture_{week:02d}_notes.pdf", folder)
-        notebooks = sorted(NBS.glob(f"lecture_{week:02d}_*.ipynb"))
-        if not notebooks:
-            sys.exit(f"no notebook found for lecture {week}")
-        for nb in notebooks:
-            copy(nb, folder)
-        readme = mark(readme, week, 0)
-        readme = mark(readme, week, 1)
+    print(f"Lecture {week}:")
+    copy(PDFS / f"lecture_{week:02d}_notes.pdf", folder)
+    notebooks = sorted(NBS.glob(f"lecture_{week:02d}_*.ipynb"))
+    if not notebooks:
+        sys.exit(f"no notebook found for lecture {week}")
+    for nb in notebooks:
+        copy(nb, folder)
+    copy(PDFS / f"lecture_{week:02d}_solutions.pdf", folder)
 
-    previous = week - 1
-    if previous >= 1:
-        print(f"Lecture {previous} solutions (one-week delay):")
-        copy(PDFS / f"lecture_{previous:02d}_solutions.pdf", REPO / "lectures" / SLUGS[previous])
-        readme = mark(readme, previous, 2)
-
+    for column in (0, 1, 2):
+        readme = mark(readme, week, column)
     readme_path.write_text(readme)
     print("  ~ README.md status table updated")
 
     subprocess.run(["git", "add", "-A"], cwd=REPO, check=True)
     print("\nStaged. Review and push with:\n")
-    if week <= 5:
-        msg = f"Publish Lecture {week}" + (f" and Lecture {previous} solutions" if previous >= 1 else "")
-    else:
-        msg = f"Publish Lecture {previous} solutions"
-    print("  git -C . diff --cached --stat")
-    print(f'  git commit -m "{msg}"')
+    print("  git diff --cached --stat")
+    print(f'  git commit -m "Publish Lecture {week}"')
     print("  git push\n")
 
 
