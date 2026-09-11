@@ -13,7 +13,7 @@ appear one week after their lecture, so the exercises are worth attempting first
 
 | # | Lecture | Central question | Notes | Notebook | Solutions |
 |---|---------|------------------|:-----:|:--------:|:---------:|
-| 1 | What Should Rotate? | How should a prediction change when the whole experiment is rotated? | ✅ | ✅ | — |
+| 1 | What Should Rotate? | How should a prediction change when the whole experiment is rotated? | ✅ | ✅ | ✅ |
 | 2 | Features Have Geometric Types | How does one rotation act on scalars, vectors and higher-ℓ features? | — | — | — |
 | 3 | How Geometric Types Combine | How do two rotating quantities combine into one with a definite type? | — | — | — |
 | 4 | From Couplings to a Neural Network | Which learned operations preserve the representation structure? | — | — | — |
