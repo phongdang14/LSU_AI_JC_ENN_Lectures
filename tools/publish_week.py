@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
 """Stage one week of course material for publication.
 
-Usage:  python3 tools/publish_week.py N
+Usage:  python3 tools/publish_week.py N [--without-solutions] [--no-stage]
 
 Copies Lecture N's notes, notebook and solutions out of the working tree
 (../output) into lectures/, updates the status table in README.md, and stages
 everything. It stops short of committing so you can read the diff first.
+
+  --without-solutions  publish the notes and notebook only, and tick just those
+                       two cells, so the README keeps telling the truth. Run the
+                       command again without the flag when the solutions go out.
+  --no-stage           skip "git add"; copy the files and leave staging to you.
 
 Nothing is ever moved or removed from ../output -- this only reads from it.
 """
@@ -54,9 +59,13 @@ def mark(readme: str, row: int, column: int) -> str:
 
 
 def main() -> None:
-    if len(sys.argv) != 2 or not sys.argv[1].isdigit():
+    args = sys.argv[1:]
+    with_solutions = "--without-solutions" not in args
+    stage = "--no-stage" not in args
+    args = [a for a in args if not a.startswith("--")]
+    if len(args) != 1 or not args[0].isdigit():
         sys.exit(__doc__)
-    week = int(sys.argv[1])
+    week = int(args[0])
     if week not in SLUGS:
         sys.exit("week must be between 1 and 5")
 
@@ -71,17 +80,25 @@ def main() -> None:
         sys.exit(f"no notebook found for lecture {week}")
     for nb in notebooks:
         copy(nb, folder)
-    copy(PDFS / f"lecture_{week:02d}_solutions.pdf", folder)
+    if with_solutions:
+        copy(PDFS / f"lecture_{week:02d}_solutions.pdf", folder)
+    else:
+        print("  . solutions held back (--without-solutions)")
 
-    for column in (0, 1, 2):
+    for column in (0, 1, 2) if with_solutions else (0, 1):
         readme = mark(readme, week, column)
     readme_path.write_text(readme)
     print("  ~ README.md status table updated")
 
-    subprocess.run(["git", "add", "-A"], cwd=REPO, check=True)
-    print("\nStaged. Review and push with:\n")
-    print("  git diff --cached --stat")
-    print(f'  git commit -m "Publish Lecture {week}"')
+    subject = f"Publish Lecture {week}" + ("" if with_solutions else " notes and notebook")
+    if stage:
+        subprocess.run(["git", "add", "-A"], cwd=REPO, check=True)
+        print("\nStaged. Review and push with:\n")
+        print("  git diff --cached --stat")
+    else:
+        print("\nCopied, not staged. Review and push with:\n")
+        print("  git add -A && git diff --cached --stat")
+    print(f'  git commit -m "{subject}"')
     print("  git push\n")
 
 
